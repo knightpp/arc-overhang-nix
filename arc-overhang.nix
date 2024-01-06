@@ -1,18 +1,15 @@
 {
   lib,
-  stdenv,
   fetchFromGitHub,
-  python3,
-  shapely,
-  numpy,
-  matplotlib,
   callPackage,
+  python3Packages,
 }: let
   numpy-hilbert-curve = callPackage (import ./numpy-hilbert-curve.nix) {};
 in
-  stdenv.mkDerivation {
+  python3Packages.buildPythonApplication {
     pname = "arc-overhang";
     version = "unstable-2023-12-18";
+    pyproject = false;
 
     src = fetchFromGitHub {
       owner = "nicolai-wachenschwan";
@@ -21,13 +18,18 @@ in
       hash = "sha256-BWZx2iO9xQKjXB6RS8VCS2rfASjp7rgfu1NPRDwjJak=";
     };
 
-    propagatedBuildInputs = [
-      python3
-      shapely
-      numpy
-      matplotlib
-      numpy-hilbert-curve
-    ];
+    propagatedBuildInputs =
+      [
+        numpy-hilbert-curve
+      ]
+      ++ builtins.attrValues {
+        inherit
+          (python3Packages)
+          shapely
+          numpy
+          matplotlib
+          ;
+      };
 
     installPhase = ''
       runHook preInstall
@@ -35,11 +37,11 @@ in
       # substitute does not work since the comment is before shebang
       #
       # substituteInPlace prusa_slicer_post_processing_script.py \
-      #   --replace '/usr/bin/python' ${python3}/bin/python
+      #   --replace '/usr/bin/python' ${python3Packages.python}/bin/python
       # install -D --mode +x prusa_slicer_post_processing_script.py $out/bin/arc-overhang.py
 
       mkdir -p $out/bin/
-      echo "#!${python3}/bin/python" >> $out/bin/arc-overhang.py
+      echo "#!${python3Packages.python}/bin/python" >> $out/bin/arc-overhang.py
       cat prusa_slicer_post_processing_script.py >> $out/bin/arc-overhang.py
       chmod +x $out/bin/arc-overhang.py
 
