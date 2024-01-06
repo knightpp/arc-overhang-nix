@@ -22,8 +22,9 @@
         });
   in {
     packages = forAllSystems ({pkgs}: {
-      default = pkgs.python3Packages.callPackage (import ./numpy-hilbert-curve.nix) {};
+      default = pkgs.python3Packages.callPackage (import ./arc-overhang.nix) {};
     });
+
     devShells = forAllSystems ({pkgs}: {
       default = pkgs.mkShell {
         packages = [(pkgs.python3Packages.callPackage (import ./arc-overhang.nix) {})];
